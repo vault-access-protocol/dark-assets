@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DARK WEB - VIRTUAL VISA TERMINAL</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --neon-green: #00ff41;
+            --dark-bg: #050505;
+            --card-bg: #0a0a0a;
+            --terminal-font: 'Courier New', Courier, monospace;
+            --shadow-blue: #0070d1;
+            --elite-gold: #d4af37;
+            --alert-red: #ff0000;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: var(--terminal-font);
+            margin: 0;
+            padding: 10px;
+            overflow-x: hidden;
+            text-transform: uppercase;
+        }
+
+        /* Matrix Rain Background */
+        #matrix-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Dark Web Branding */
+        .darkweb-branding {
+            text-align: center;
+            padding: 50px 0 30px 0;
+            border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -4px;
+            line-height: 0.8;
+            margin: 0;
+            text-shadow: 0 0 25px var(--neon-green);
+        }
+
+        .sub-title {
+            font-size: 1.3rem;
+            color: var(--neon-green);
+            letter-spacing: 6px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .system-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        /* Category Sections */
+        .tier-header {
+            font-size: 0.9rem;
+            margin: 30px 0 15px 5px;
+            padding-left: 10px;
+            border-left: 4px solid;
+            letter-spacing: 2px;
+        }
+
+        .card-list { display: grid; gap: 20px; }
+
+        .visa-card {
+            background: var(--card-bg);
+            border: 1px solid #1a1a1a;
+            border-left: 5px solid;
+            padding: 25px;
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .visa-card:active { transform: scale(0.96); }
+
+        .card-label { font-size: 0.65rem; opacity: 0.5; display: block; margin-bottom: 5px; }
+        .card-limit { font-size: 2.2rem; font-weight: 900; color: #fff; margin: 10px 0; letter-spacing: -1px; }
+        .card-price { font-size: 1rem; color: #fff; display: inline-block; padding: 5px 10px; background: rgba(255,255,255,0.05); border-radius: 4px; }
+
+        .exec-btn {
+            background: transparent;
+            border: 2px solid;
+            padding: 15px;
+            width: 100%;
+            margin-top: 20px;
+            font-family: var(--terminal-font);
+            font-weight: 900;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        /* Tier Styling */
+        .tier-starter { border-color: var(--neon-green); color: var(--neon-green); }
+        .tier-shadow { border-color: var(--shadow-blue); color: var(--shadow-blue); }
+        .tier-elite { border-color: var(--elite-gold); color: var(--elite-gold); }
+        .tier-god { border-color: var(--alert-red); color: var(--alert-red); }
+
+        /* Payment Gateway Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98);
+            z-index: 1000;
+            padding: 20px;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            border: 2px solid var(--neon-green);
+            padding: 30px; width: 100%; max-width: 450px;
+            background: #000;
+            box-shadow: 0 0 50px rgba(0,255,65,0.3);
+        }
+
+        .wallet-box {
+            background: #0a0a0a; padding: 15px; border: 1px dashed var(--neon-green);
+            margin: 20px 0; font-size: 0.85rem; word-break: break-all;
+            position: relative;
+        }
+
+        .copy-btn {
+            background: var(--neon-green); color: #000; padding: 5px 12px;
+            position: absolute; top: -12px; right: 10px;
+            cursor: pointer; font-size: 0.7rem; font-weight: bold;
+            border-radius: 2px;
+        }
+
+        input {
+            background: #000; border: 1px solid #222; color: var(--neon-green);
+            width: 100%; padding: 15px; margin: 15px 0; font-family: var(--terminal-font);
+            outline: none; font-size: 0.9rem;
+        }
+
+        input:focus { border-color: var(--neon-green); }
+
+        .footer {
+            margin-top: 60px;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            border-top: 1px solid #111;
+        }
+
+    </style>
+</head>
+<body>
+
+<canvas id="matrix-bg"></canvas>
+
+<header class="darkweb-branding">
+    <h1 class="main-title">DARK WEB</h1>
+    <h2 class="sub-title">VIRTUAL_VISA</h2>
+</header>
+
+<div class="system-status">
+    <span>CONNECTED_NODE: [REDACTED]</span>
+    <span>ENCRYPTION: AES_X64</span>
+    <span>NETWORK: BEP-20_USDT</span>
+</div>
+
+<!-- LEVEL 01 -->
+<div class="tier-header tier-starter">// LEVEL_01: ENTRY_PROTOCOL</div>
+<div class="card-list">
+    <div class="visa-card tier-starter">
+        <span class="card-label">ID: STARTER_PLATINUM</span>
+        <div class="card-limit">LIMIT: $55.00</div>
+        <div class="card-price">DEPOSIT: 10 USDT</div>
+        <button class="exec-btn tier-starter" onclick="openPayment('10.00', '55.00')">INITIATE_PROTOCOL</button>
+    </div>
+    <div class="visa-card tier-starter">
+        <span class="card-label">ID: STARTER_PLATINUM_V2</span>
+        <div class="card-limit">LIMIT: $120.00</div>
+        <div class="card-price">DEPOSIT: 25 USDT</div>
+        <button class="exec-btn tier-starter" onclick="openPayment('25.00', '120.00')">INITIATE_PROTOCOL</button>
+    </div>
+</div>
+
+<!-- LEVEL 02 -->
+<div class="tier-header tier-shadow">// LEVEL_02: SHADOW_NETWORK</div>
+<div class="card-list">
+    <div class="visa-card tier-shadow">
+        <span class="card-label">ID: BLACK_SHADOW_ASSET</span>
+        <div class="card-limit">LIMIT: $250.00</div>
+        <div class="card-price">DEPOSIT: 50 USDT</div>
+        <button class="exec-btn tier-shadow" onclick="openPayment('50.00', '250.00')">INITIATE_PROTOCOL</button>
+    </div>
+    <div class="visa-card tier-shadow">
+        <span class="card-label">ID: BLACK_SHADOW_ULTRA</span>
+        <div class="card-limit">LIMIT: $450.00</div>
+        <div class="card-price">DEPOSIT: 85 USDT</div>
+        <button class="exec-btn tier-shadow" onclick="openPayment('85.00', '450.00')">INITIATE_PROTOCOL</button>
+    </div>
+</div>
+
+<!-- LEVEL 03 -->
+<div class="tier-header tier-elite">// LEVEL_03: ELITE_DEEP_WEB</div>
+<div class="card-list">
+    <div class="visa-card tier-elite">
+        <span class="card-label">ID: QUANTUM_GOLD_RESERVE</span>
+        <div class="card-limit">LIMIT: $1,000.00</div>
+        <div class="card-price">DEPOSIT: 180 USDT</div>
+        <button class="exec-btn tier-elite" onclick="openPayment('180.00', '1,000.00')">INITIATE_PROTOCOL</button>
+    </div>
+    <div class="visa-card tier-god">
+        <span class="card-label" style="color: var(--alert-red);">ID: OVERLORD_SYSTEM_DEEP</span>
+        <div class="card-limit" style="color: var(--alert-red);">LIMIT: $5,000.00</div>
+        <div class="card-price">DEPOSIT: 850 USDT</div>
+        <button class="exec-btn tier-god" onclick="openPayment('850.00', '5,000.00')">INITIATE_PROTOCOL</button>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal">
+    <div class="modal-content">
+        <div style="text-align:center; color:#fff; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:20px; font-weight:bold;">
+            SECURE_GATEWAY_AUTHENTICATION
+        </div>
+        <p style="font-size: 0.75rem;">REQUIRED_DEPOSIT: <span id="payAmount" style="color:#fff; font-weight:bold;"></span> USDT</p>
+        <p style="font-size: 0.75rem;">BLOCKCHAIN_NET: <span style="color:yellow">BNB_SMART_CHAIN (BEP20)</span></p>
+        
+        <div class="wallet-box">
+            <span class="copy-btn" onclick="copyAddr()">COPY_ADDR</span>
+            <span id="addr">0xda81be3f3324E64495773bcb445e771EEd383c7d</span>
+        </div>
+
+        <label style="font-size: 0.65rem;">INSERT_TRANSACTION_HASH (TXID):</label>
+        <input type="text" id="txhash" placeholder="0x..." autocomplete="off">
+        
+        <button class="exec-btn tier-starter" onclick="confirmPayment()">VERIFY_ON_BLOCKCHAIN_</button>
+        <div style="text-align: center; margin-top: 15px;">
+            <span style="color:#444; cursor:pointer; font-size:0.75rem; text-decoration: underline;" onclick="closeModal()">ABORT_TRANSACTION</span>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    SHADOW_TERMINAL_V4.0 // ENCRYPTED_ASSET_DELIVERY // NO_LOGS_POLICY
+</footer>
+
+<script>
+    const tele = window.Telegram.WebApp;
+    tele.expand();
+    tele.enableClosingConfirmation();
+
+    function openPayment(amount, limit) {
+        document.getElementById('payAmount').innerText = amount;
+        document.getElementById('paymentModal').style.display = 'flex';
+        tele.HapticFeedback.impactOccurred('heavy');
+    }
+
+    function closeModal() {
+        document.getElementById('paymentModal').style.display = 'none';
+    }
+
+    function copyAddr() {
+        const addr = document.getElementById('addr').innerText;
+        navigator.clipboard.writeText(addr).then(() => {
+            tele.HapticFeedback.notificationOccurred('success');
+            alert("SYSTEM: ADDRESS_COPIED");
+        });
+    }
+
+    function confirmPayment() {
+        const tx = document.getElementById('txhash').value.trim();
+        if(tx.length < 15) {
+            alert("SYSTEM_ERROR: INVALID_HASH_FORMAT");
+            tele.HapticFeedback.notificationOccurred('error');
+            return;
+        }
+        
+        // إرسال البيانات للبوت
+        tele.sendData(JSON.stringify({
+            request: "payment_verification",
+            hash: tx,
+            amount: document.getElementById('payAmount').innerText,
+            timestamp: Date.now()
+        }));
+        
+        alert("SYSTEM: VERIFICATION_SENT_TO_NODE");
+        tele.close();
+    }
+
+    // Matrix Rain Effect
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const chars = "01010101";
+    const drops = Array(Math.floor(canvas.width/20)).fill(1);
+
+    function drawMatrix() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00ff41";
+        ctx.font = "15px monospace";
+        drops.forEach((y, i) => {
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(text, i * 20, y * 20);
+            if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        });
+    }
+    setInterval(drawMatrix, 50);
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+</script>
+
+</body>
+</html>
